@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -35,6 +36,7 @@ public class ItemRestController {
 	}
 	
 	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
 	public Item saveItem(@RequestBody Item newItem) {
 		return this.repo.save(newItem);
 	}
@@ -50,7 +52,7 @@ public class ItemRestController {
 	ResponseEntity<?> deleteTopic(@PathVariable long id) {
 		try {
 			this.repo.deleteById(id);
-			return new ResponseEntity<String>("Data deleted successfully", HttpStatus.OK);
+			return new ResponseEntity<String>("Data deleted successfully", HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<String>("Resource not found", HttpStatus.NOT_FOUND);
 		}
