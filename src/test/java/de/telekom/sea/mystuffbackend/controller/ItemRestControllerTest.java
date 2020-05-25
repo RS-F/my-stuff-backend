@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -24,13 +26,6 @@ import de.telekom.sea.mystuffbackend.repository.ItemRepository;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class ItemRestControllerTest {
 
-	public class ItemList {
-		private List<Item> items;
-		public ItemList() {
-			items = new ArrayList<>();
-		}
-	}
-	
 	private static final String BASE_PATH = "/api/v1/items";
 
 	@Autowired
@@ -42,12 +37,6 @@ class ItemRestControllerTest {
 	@BeforeEach
 	void setupRepo() {
 		repo.deleteAll();
-	}
-
-	@Test
-	void test() {
-//		fail("Not yet implemented");
-		System.out.println("--> Test: " + restTemplate);
 	}
 
 	@Test
@@ -75,7 +64,7 @@ class ItemRestControllerTest {
 		assertThat(response.getBody().length).isEqualTo(3);
 		System.out.println("--> Status: " + response.getStatusCodeValue() + ", Länge: " + response.getBody().length);
 	}
-	
+
 	@Test
 	void shouldFinfOneItem() {
 		// Given | Arrange
@@ -87,32 +76,59 @@ class ItemRestControllerTest {
 		assertThat(response.getBody()).isEqualToComparingFieldByField(lawnMower);
 	}
 
-//	@Test
-//	void shouldFindNoItemForUnknownId() throws URISyntaxException {
-//		fail();
-//	}
+	@Test
+	void shouldFindNoItemForUnknownId() throws URISyntaxException {
+		// Given | Arrange
+		final int unKnownID = 7;
+		// When | Act
+		ResponseEntity<Item> response = restTemplate.getForEntity(BASE_PATH + "/" + unKnownID, Item.class);
+		// Then | Assert
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
 
-//	@Test
-//	void shouldBeAbleToDeleteAnItem() throws URISyntaxException {
-//		fail();
-//	}
+	@Test
+	void shouldBeAbleToDeleteAnItem() throws URISyntaxException {
+		// Given | Arrange
+		Item lawnMower = givenAnInsertedItem(buildLawnMower()).getBody();
+		Item fourTyres = givenAnInsertedItem(build4Tires()).getBody();
+		// When | Act
+		ResponseEntity<Integer> response = restTemplate.exchange(BASE_PATH + "/" + fourTyres.getId(), HttpMethod.DELETE,
+				HttpEntity.EMPTY, Integer.class);
+		// Then | Assert
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		System.out.println("--> Status (Delete): " + response.getStatusCodeValue());
+	}
 
-//	@Test
-//	void shouldNotBeAbleToDeleteAnItemWithUnknownId() throws URISyntaxException {
-//		fail();
-//	}
+	@Test
+	void shouldNotBeAbleToDeleteAnItemWithUnknownId() throws URISyntaxException {
+		// Given | Arrange
+		final int unKnownID = 7;		
+		// When | Act
+//		ResponseEntity<Integer> response = restTemplate.exchange(BASE_PATH + "/" + unKnownID, HttpMethod.DELETE,
+//				HttpEntity.EMPTY, Integer.class);
+		ResponseEntity<Item> response = restTemplate.getForEntity(BASE_PATH + "/" + unKnownID, Item.class);	
+		// Then | Assert
+		System.out.println("--> Status (Delete Unknown ID): " + response.getStatusCodeValue());
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
 
-//	@Test
-//	void shouldBeAbleToReplaceAnItem() throws URISyntaxException {
-//		fail();
-//	}
+	@Test
+	void shouldBeAbleToReplaceAnItem() throws URISyntaxException {
+		// Given | Arrange
+		Item lawnMower = givenAnInsertedItem(buildLawnMower()).getBody();
+		lawnMower.setAmount(7);
+		// When | Act
+		ResponseEntity<Item> response = restTemplate.postForEntity(BASE_PATH, lawnMower, Item.class);
+		// Then | Assert
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		System.out.println("--> Status (Replace): " + response.getStatusCodeValue());
+	}
 
 //	@Test
 //	void shouldNotBeAbleToReplaceAnItemWithUnknownId() throws URISyntaxException {
 //		fail();
 //	}
 
-	
 	private Item buildLawnMower() {
 //		Item item = Item.builder().name("Lawn mower").amount(1).lastUsed(Date.valueOf("2019-05-01"))
 //				.location("Basement").build();
@@ -123,7 +139,7 @@ class ItemRestControllerTest {
 		item.setLocation("Basement");
 		return item;
 	}
-	
+
 	private Item buildLawnTrimmer() {
 		Item item = Item.builder().name("Lawn trimmer").amount(1).lastUsed(Date.valueOf("2018-05-01"))
 				.location("Basement").build();
@@ -131,8 +147,8 @@ class ItemRestControllerTest {
 	}
 
 	private Item build4Tires() {
-		Item item = Item.builder().name("Tyres").amount(4).lastUsed(Date.valueOf("2020-05-01"))
-				.location("Basement").description("for winter use").build();
+		Item item = Item.builder().name("Tyres").amount(4).lastUsed(Date.valueOf("2020-05-01")).location("Basement")
+				.description("for winter use").build();
 		return item;
 	}
 
