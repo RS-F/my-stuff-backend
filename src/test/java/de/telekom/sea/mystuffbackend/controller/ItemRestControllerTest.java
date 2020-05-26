@@ -61,12 +61,11 @@ class ItemRestControllerTest {
 		Item lawnTrimmer = givenAnInsertedItem(buildLawnTrimmer()).getBody();
 		Item fourTyres = givenAnInsertedItem(build4Tires()).getBody();
 		// When | Act
-//		ResponseEntity <List<Item>> response = restTemplate.get(BASE_PATH, Item.class);
 		ResponseEntity<Item[]> response = restTemplate.getForEntity(BASE_PATH, Item[].class);
 //		// Then | Assert
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody().length).isEqualTo(3);
 		System.out.println("--> Status: " + response.getStatusCodeValue() + ", Länge: " + response.getBody().length);
+		assertThat(response.getBody().length).isEqualTo(3);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
@@ -83,7 +82,7 @@ class ItemRestControllerTest {
 	@Test
 	void shouldFindNoItemForUnknownId() throws URISyntaxException {
 		// Given | Arrange
-		final Long unKnownID = 7L;
+		final Long unKnownID = 4711L;
 		// When | Act
 		ResponseEntity<Item> response = restTemplate.getForEntity(BASE_PATH + "/" + unKnownID, Item.class);
 		// Then | Assert
@@ -99,18 +98,15 @@ class ItemRestControllerTest {
 		ResponseEntity<Integer> response = restTemplate.exchange(BASE_PATH + "/" + fourTyres.getId(), HttpMethod.DELETE,
 				HttpEntity.EMPTY, Integer.class);
 		// Then | Assert
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		System.out.println("--> Status (Delete): " + response.getStatusCodeValue());
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 	}
 
 	@Test
 	void shouldNotBeAbleToDeleteAnItemWithUnknownId() throws URISyntaxException {
 		// Given | Arrange
-		final Long unKnownID = 7L;
+		final Long unKnownID = 4711L;
 		// When | Act
-//		ResponseEntity<Integer> response = restTemplate.exchange(BASE_PATH + "/" + unKnownID, HttpMethod.DELETE,
-//				HttpEntity.EMPTY, Integer.class);
-//		ResponseEntity<Item> response = restTemplate.getForEntity(BASE_PATH + "/" + unKnownID, Item.class);	
 		RequestEntity<String> request = new RequestEntity<>(HttpMethod.DELETE,
 				new URI(restTemplate.getRootUri() + BASE_PATH + "/" + unKnownID));
 		ResponseEntity<String> response = restTemplate.exchange(request, String.class);
@@ -131,8 +127,8 @@ class ItemRestControllerTest {
 		HttpEntity<Item> request = new HttpEntity<Item>(fourTyres, headers);
 		fourTyres.setId(lawnMower.getId());
 		ResponseEntity<Item> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Item.class);
-		System.out.println("--> Request (Replace): " + response.getStatusCodeValue());
 		// Then | Assert
+		System.out.println("--> Request (Replace): " + response.getStatusCodeValue());
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
@@ -140,15 +136,15 @@ class ItemRestControllerTest {
 	void shouldNotBeAbleToReplaceAnItemWithUnknownId() throws URISyntaxException {
 		// Given | Arrange
 		Item lawnMower = givenAnInsertedItem(buildLawnMower()).getBody();
-		final Long unKnownID = 7L;
+		final Long unKnownID = 4711L;
 		// When | Act
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		URI uri = new URI(restTemplate.getRootUri() + BASE_PATH + "/" + unKnownID);
 		HttpEntity<Item> request = new HttpEntity<Item>(lawnMower, headers);
 		ResponseEntity<Item> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Item.class);
-		System.out.println("--> Request (Replace, Unknown ID): " + response.getStatusCodeValue());
 		// Then | Assert
+		System.out.println("--> Request (Replace, Unknown ID): " + response.getStatusCodeValue());
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 	}
 
