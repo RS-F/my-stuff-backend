@@ -3,6 +3,7 @@ package de.telekom.sea.mystuffbackend.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -15,9 +16,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 
 import de.telekom.sea.mystuffbackend.entities.Item;
@@ -79,7 +83,7 @@ class ItemRestControllerTest {
 	@Test
 	void shouldFindNoItemForUnknownId() throws URISyntaxException {
 		// Given | Arrange
-		final int unKnownID = 7;
+		final Long unKnownID = 7L;
 		// When | Act
 		ResponseEntity<Item> response = restTemplate.getForEntity(BASE_PATH + "/" + unKnownID, Item.class);
 		// Then | Assert
@@ -102,11 +106,14 @@ class ItemRestControllerTest {
 	@Test
 	void shouldNotBeAbleToDeleteAnItemWithUnknownId() throws URISyntaxException {
 		// Given | Arrange
-		final int unKnownID = 7;		
+		final Long unKnownID = 7L;
 		// When | Act
 //		ResponseEntity<Integer> response = restTemplate.exchange(BASE_PATH + "/" + unKnownID, HttpMethod.DELETE,
 //				HttpEntity.EMPTY, Integer.class);
-		ResponseEntity<Item> response = restTemplate.getForEntity(BASE_PATH + "/" + unKnownID, Item.class);	
+//		ResponseEntity<Item> response = restTemplate.getForEntity(BASE_PATH + "/" + unKnownID, Item.class);	
+		RequestEntity<String> request = new RequestEntity<>(HttpMethod.DELETE,
+				new URI(restTemplate.getRootUri() + BASE_PATH + "/" + unKnownID));
+		ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 		// Then | Assert
 		System.out.println("--> Status (Delete Unknown ID): " + response.getStatusCodeValue());
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -116,18 +123,35 @@ class ItemRestControllerTest {
 	void shouldBeAbleToReplaceAnItem() throws URISyntaxException {
 		// Given | Arrange
 		Item lawnMower = givenAnInsertedItem(buildLawnMower()).getBody();
-		lawnMower.setAmount(7);
+		Item fourTyres = build4Tires();
 		// When | Act
-		ResponseEntity<Item> response = restTemplate.postForEntity(BASE_PATH, lawnMower, Item.class);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		URI uri = new URI(restTemplate.getRootUri() + BASE_PATH + "/" + lawnMower.getId());
+		HttpEntity<Item> request = new HttpEntity<Item>(fourTyres, headers);
+		fourTyres.setId(lawnMower.getId());
+		ResponseEntity<Item> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Item.class);
+		System.out.println("--> Request (Replace): " + response.getStatusCodeValue());
 		// Then | Assert
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		System.out.println("--> Status (Replace): " + response.getStatusCodeValue());
 	}
 
-//	@Test
-//	void shouldNotBeAbleToReplaceAnItemWithUnknownId() throws URISyntaxException {
-//		fail();
-//	}
+	@Test
+	void shouldNotBeAbleToReplaceAnItemWithUnknownId() throws URISyntaxException {
+		// Given | Arrange
+		Item lawnMower = givenAnInsertedItem(buildLawnMower()).getBody();
+		final Long unKnownID = 7L;
+		// When | Act
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		URI uri = new URI(restTemplate.getRootUri() + BASE_PATH + "/" + unKnownID);
+		HttpEntity<Item> request = new HttpEntity<Item>(lawnMower, headers);
+		ResponseEntity<Item> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Item.class);
+		System.out.println("--> Request (Replace, Unknown ID): " + response.getStatusCodeValue());
+		// Then | Assert
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
 
 	private Item buildLawnMower() {
 //		Item item = Item.builder().name("Lawn mower").amount(1).lastUsed(Date.valueOf("2019-05-01"))
