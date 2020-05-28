@@ -22,9 +22,10 @@ public class ItemLoader implements ApplicationListener<ContextRefreshedEvent> {
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		
+		for (int i = 0; i < 10; i++) {
+			
 		Item item1 = new Item();
-		item1.setName("Fahradschlauch");
+		item1.setName("Fahradschlauch" + " " + String.valueOf(i+ 1));
 		item1.setAmount(3);
 		item1.setDescription("Größe 24, 26, 28");
 		item1.setLocation("Schrank, 2. Fach links");
@@ -33,7 +34,7 @@ public class ItemLoader implements ApplicationListener<ContextRefreshedEvent> {
 		itemRepository.save(item1);
 		
 		Item item2 = new Item();
-		item2.setName("Gummistiefel");
+		item2.setName("Gummistiefel" + " " + String.valueOf(i+ 1));
 		item2.setAmount(2);
 		item2.setDescription("Größe 44, 38");
 		item2.setLocation("Regal, unten");
@@ -42,7 +43,7 @@ public class ItemLoader implements ApplicationListener<ContextRefreshedEvent> {
 		itemRepository.save(item2);
 		
 		Item item3 = new Item();
-		item3.setName("Heckenschere");
+		item3.setName("Heckenschere" + " " + String.valueOf(i+ 1));
 		item3.setAmount(1);
 		item3.setDescription("elektrisch");
 		item3.setLocation("Schrank, unterstes Fach links");
@@ -50,6 +51,7 @@ public class ItemLoader implements ApplicationListener<ContextRefreshedEvent> {
 	
 		itemRepository.save(item3);
 
+		}
 
 	}
 	
