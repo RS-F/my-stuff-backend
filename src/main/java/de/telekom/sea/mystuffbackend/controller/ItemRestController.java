@@ -35,6 +35,16 @@ public class ItemRestController {
 	public List<Item> getAll() {
 		return this.repo.findAll();
 	}
+	
+	@RequestMapping(method = RequestMethod.DELETE)
+	ResponseEntity<?> deleteAll() {
+		try {
+			this.repo.deleteAll();;
+			return new ResponseEntity<String>("Data deleted successfully", HttpStatus.NO_CONTENT);
+		} catch (Exception e) {
+			return new ResponseEntity<String>("Resource not found", HttpStatus.NOT_FOUND);
+		}
+	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
